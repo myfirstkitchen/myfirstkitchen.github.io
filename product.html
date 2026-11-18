@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cookware — First Kitchen</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="product">
+<div class="wrap">
+<div class="crumbs"><a href="cookware.html">Pots &amp; pans</a> / <span id="crumb"></span></div>
+<div class="pd" id="pd"></div>
+<h2 class="sec">More cookware</h2>
+<div class="grid" id="more"></div>
+</div>
+<script src="data.js"></script>
+<script src="site.js"></script>
+<script>
+(function(){
+var FK=window.FK,money=FK.money;
+var q=new URLSearchParams(location.search);
+var c=FK.cookById(q.get("id"))||FK.COOK[0];
+var existing=FK.getSet();
+var sel={size:0,color:q.get("color")||(existing&&existing.color)||"sage",qty:1};
+if(existing&&existing.cook&&existing.cook[c.id]&&existing.cook[c.id].qty>0)sel.size=existing.cook[c.id].size;
+document.title=c.n+" — First Kitchen";
+document.getElementById("crumb").textContent=c.n;
+
+function render(){
+  var s=c.s[sel.size];
+  document.getElementById("pd").innerHTML=
+    '<div class="pic big" style="background:var(--soft)">'+FK.art(c.kind,FK.colorHex(sel.color))+'</div>'+
+    '<div><h1>'+c.n+'</h1><p class="lede">'+c.blurb+'</p>'+
+    '<div style="font-size:1.6rem;font-weight:800">'+money(s[1]*sel.qty)+'</div>'+
+    '<label class="f">Size</label><div class="opts">'+c.s.map(function(x,i){return '<button type="button" class="opt'+(i===sel.size?' on':'')+'" data-size="'+i+'">'+x[0]+' · '+money(x[1])+'</button>'}).join("")+'</div>'+
+    '<label class="f">Color</label><div class="colors">'+FK.COLORS.map(function(k){return '<button type="button" class="col'+(sel.color===k.id?' on':'')+'" data-color="'+k.id+'"><div class="sw sm" style="background:'+k.c+'"></div>'+k.n+'</button>'}).join("")+'</div>'+
+    '<label class="f">Quantity</label><div class="st"><button type="button" data-q="-1" aria-label="Fewer">−</button><span>'+sel.qty+'</span><button type="button" data-q="1" aria-label="More">+</button></div>'+
+    '<div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="add" type="button">Add to my kit</button><a class="btn alt" href="builder.html">View my kit</a></div>'+
+    '<ul class="specs"><li><b>Best for:</b> '+c.uses.join(", ")+'</li><li><b>Material:</b> '+c.mat+'</li><li><b>Works on:</b> '+c.heat+'</li><li><b>Oven:</b> '+c.oven+'</li></ul></div>';
+}
+function add(){
+  var set=FK.getSet();
+  if(!set){set={preset:"custom",color:sel.color,cook:{},it:{}}}
+  set.preset="custom";set.color=sel.color;
+  var cur=set.cook[c.id]||{size:0,qty:0};
+  set.cook[c.id]={size:sel.size,qty:Math.min(6,(cur.qty||0)+sel.qty)};
+  FK.setSet(set);
+  FK.toast("Added "+sel.qty+" × "+c.n+" ("+c.s[sel.size][0]+") to your kit");
+}
+document.addEventListener("click",function(e){
+  var b=e.target.closest("button");if(!b)return;
+  if(b.dataset.size!==undefined){sel.size=+b.dataset.size;render()}
+  else if(b.dataset.color){sel.color=b.dataset.color;render()}
+  else if(b.dataset.q){sel.qty=Math.max(1,Math.min(6,sel.qty+(+b.dataset.q)));render()}
+  else if(b.id==="add")add();
+});
+render();
+document.getElementById("more").innerHTML=FK.COOK.filter(function(x){return x.id!==c.id}).map(function(x){
+  return '<a class="card" href="product.html?id='+x.id+'"><div class="pic">'+FK.art(x.kind,FK.colorHex(sel.color))+'</div><h3>'+x.n+'</h3><p>'+x.tag+'</p><div class="price">From '+money(x.s[0][1])+'</div></a>';
+}).join("");
+})();
+</script>
+</body>
+</html>

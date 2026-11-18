@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>First Kitchen — Build Your Starter Kitchen Set</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="home">
+<div class="wrap">
+<header class="hero">
+<h1>Your first kitchen, built your way.</h1>
+<p>Pick a starter size, then adjust every pan, pot, oil, spice, and utensil. Each set comes with recipe cards that use only what's in your box. Running low? Subscribe to your oils and seasonings and we'll refill them.</p>
+<a class="btn" href="builder.html">Build your kit</a>
+<a class="btn alt" href="subscribe.html" style="margin-left:6px">Subscribe to refills</a>
+</header>
+
+<h2 class="sec">What goes in your box</h2>
+<div class="grid">
+<a class="card" href="cookware.html"><h3>Pans &amp; pots</h3><p>Pick sizes and quantity for each.</p></a>
+<a class="card" href="cookware.html"><h3>Color ways</h3><p>Sage, cream, charcoal, terracotta, or navy.</p></a>
+<a class="card" href="subscribe.html"><h3>Oils</h3><p>Olive, avocado, sesame, or neutral.</p></a>
+<a class="card" href="subscribe.html"><h3>Seasonings</h3><p>Salt, pepper, garlic, paprika, and more.</p></a>
+<a class="card" href="subscribe.html"><h3>Extra spices</h3><p>Curry, taco blend, cinnamon, and others.</p></a>
+<a class="card" href="builder.html"><h3>Utensils</h3><p>Spatula, tongs, knife, board, and more.</p></a>
+</div>
+
+<h2 class="sec">How it works</h2>
+<div class="steps">
+<div class="card"><h3>Build</h3><p>Start with Mini, Standard or Full, then tweak every item.</p></div>
+<div class="card"><h3>Cook</h3><p>Every set includes recipe cards that use only what's in your box.</p></div>
+<div class="card"><h3>Refill</h3><p>Subscribe to oils and seasonings at any frequency, from every 2 weeks to every 6 months.</p></div>
+</div>
+
+<h2 class="sec">Meet the cookware</h2>
+<div class="grid" id="feat"></div>
+<p style="margin-top:14px"><a href="cookware.html">See all pots &amp; pans →</a></p>
+
+<h2 class="sec">Never run out</h2>
+<div class="card" style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;justify-content:space-between">
+<div><h3>Oil &amp; seasoning subscriptions</h3><p>Choose your own frequency for each item and save 10% on every delivery. Skip, change or cancel anytime.</p></div>
+<a class="btn" href="subscribe.html">Set up refills</a>
+</div>
+</div>
+
+<script src="data.js"></script>
+<script src="site.js"></script>
+<script>
+(function(){
+var FK=window.FK;
+document.getElementById("feat").innerHTML=FK.COOK.slice(0,3).map(function(c){
+  return '<a class="card" href="product.html?id='+c.id+'"><div class="pic">'+FK.art(c.kind,FK.colorHex("sage"))+'</div><h3>'+c.n+'</h3><p>'+c.tag+'</p><div class="price">From '+FK.money(c.s[0][1])+'</div></a>';
+}).join("");
+})();
+</script>
+</body>
+</html>

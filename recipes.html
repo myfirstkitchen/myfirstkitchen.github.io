@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recipe Cards — First Kitchen</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="recipes">
+<div class="wrap">
+<h1 class="page-title">Recipe cards</h1>
+<p class="lede">Every recipe uses only what ships in your box. Tap a card to see what you'll need and the steps.</p>
+<div class="grid" id="list"></div>
+</div>
+<script src="data.js"></script>
+<script src="site.js"></script>
+<script>
+(function(){
+var FK=window.FK;
+document.getElementById("list").innerHTML=FK.RECIPES.map(function(r){
+  return '<div class="card"><h3>'+r.t+'</h3><p><span class="pill">'+r.time+'</span><span class="pill">'+r.lvl+'</span></p>'+
+  '<details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;color:var(--accent)">View recipe</summary>'+
+  '<p style="margin-top:8px"><b>You need:</b> '+r.needs.join(", ")+'</p><ol style="color:var(--muted);padding-left:18px;margin:8px 0 0">'+r.steps.map(function(s){return '<li>'+s+'</li>'}).join("")+'</ol></details></div>';
+}).join("");
+})();
+</script>
+</body>
+</html>

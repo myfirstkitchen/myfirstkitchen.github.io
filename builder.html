@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Build Your Kit — First Kitchen</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="builder">
+<div class="wrap">
+<header class="hero">
+<h1>Build your starter kit.</h1>
+<p>Pick a starter size, then adjust every pan, pot, oil, spice, and utensil. Tap a pot or pan name to see it up close.</p>
+</header>
+
+<div class="layout">
+<main>
+<div class="step"><h2>1. Choose a starting size</h2><p class="d">You can change anything afterward.</p>
+<div class="tiers" id="tiers"></div></div>
+
+<div class="step"><h2>2. Cookware color</h2><p class="d">One color across all your pans and pots.</p>
+<div class="colors" id="colors"></div></div>
+
+<div class="step"><h2>3. Pans &amp; pots</h2><p class="d">Choose sizes and how many of each. <a href="cookware.html">Browse all cookware</a></p><div id="cook"></div></div>
+
+<div class="step"><h2>4. Cooking oils</h2><p class="d">Small bottles, sized for one person. Want them refilled automatically? <a href="subscribe.html">Subscribe</a></p><div id="oils"></div></div>
+
+<div class="step"><h2>5. Seasonings</h2><p class="d">Everyday basics.</p><div id="seas"></div></div>
+
+<div class="step"><h2>6. Extra spices &amp; blends</h2><p class="d">Optional add-ons for more variety.</p><div id="xsp"></div></div>
+
+<div class="step"><h2>7. Utensils &amp; tools</h2><p class="d">Add what you don't already own.</p><div id="uten"></div></div>
+</main>
+
+<aside class="sum" id="summary">
+<h2>Your set</h2>
+<div id="lines"></div>
+<div class="tot"><span>Subtotal</span><span id="total">$0.00</span></div>
+<a class="btn block" id="order" href="#">Request this set</a>
+<button class="btn alt block" id="copy" type="button" style="margin-top:8px">Copy order summary</button>
+<div class="note">Shipping and tax are calculated at checkout. Prices shown are sample prices.</div>
+</aside>
+</div>
+</div>
+<div class="bar"><div><div style="font-size:.75rem;color:var(--muted)">Subtotal</div><b id="barTotal">$0.00</b></div><a href="#summary">View my set</a></div>
+
+<script src="data.js"></script>
+<script src="site.js"></script>
+<script>
+(function(){
+var FK=window.FK,$=function(i){return document.getElementById(i)},money=FK.money;
+var st=FK.getSet()||null;
+function applyPreset(k){
+  var p=FK.PRE[k];
+  st={preset:k,color:(st&&st.color)||"sage",cook:{},it:{}};
+  Object.keys(p.cook).forEach(function(id){st.cook[id]={size:p.cook[id][0],qty:p.cook[id][1]}});
+  Object.keys(p.it).forEach(function(id){st.it[id]=p.it[id]});
+}
+if(!st)applyPreset("std");
+function setCustom(){st.preset="custom"}
+function stepper(id,q){return '<div class="st"><button type="button" data-a="-" data-id="'+id+'" aria-label="Fewer">−</button><span>'+q+'</span><button type="button" data-a="+" data-id="'+id+'" aria-label="More">+</button></div>'}
+function listHtml(arr){return arr.map(function(r){var q=st.it[r[0]]||0;
+  return '<div class="row"><div class="nm"><b>'+r[1]+'</b>'+(r[2]?'<small>'+r[2]+'</small>':'')+'</div><div class="pr">'+money(r[3])+'</div>'+stepper(r[0],q)+'</div>'}).join("")}
+function render(){
+  FK.setSet(st);
+  $("tiers").innerHTML=Object.keys(FK.PRE).map(function(k){return '<button type="button" class="tier'+(st.preset===k?' on':'')+'" data-p="'+k+'"><b>'+FK.PRE[k].n+'</b><span>'+FK.PRE[k].d+'</span></button>'}).join("");
+  $("colors").innerHTML=FK.COLORS.map(function(c){return '<button type="button" class="col'+(st.color===c.id?' on':'')+'" data-c="'+c.id+'"><div class="sw" style="background:'+c.c+'"></div>'+c.n+'</button>'}).join("");
+  $("cook").innerHTML=FK.COOK.map(function(c){var o=st.cook[c.id]||{size:0,qty:0};
+    var sel=c.s.map(function(s,i){return '<option value="'+i+'"'+(i===o.size?' selected':'')+'>'+s[0]+' — '+money(s[1])+'</option>'}).join("");
+    return '<div class="row"><div class="nm"><b><a href="product.html?id='+c.id+'">'+c.n+'</a></b><small>'+c.tag+'</small></div><select data-k="'+c.id+'" aria-label="Size for '+c.n+'">'+sel+'</select>'+stepper("c:"+c.id,o.qty)+'</div>'}).join("");
+  $("oils").innerHTML=listHtml(FK.OILS);$("seas").innerHTML=listHtml(FK.SEAS);$("xsp").innerHTML=listHtml(FK.XSP);$("uten").innerHTML=listHtml(FK.UTEN);
+  summary();
+}
+var lastText="";
+function summary(){
+  var lines=[],total=0,txt=["FIRST KITCHEN ORDER","Set: "+(st.preset==="custom"?"Custom":FK.PRE[st.preset].n),"Color: "+FK.COLORS.filter(function(c){return c.id===st.color})[0].n,""];
+  FK.COOK.forEach(function(c){var o=st.cook[c.id];if(o&&o.qty>0){var s=c.s[o.size],p=s[1]*o.qty;total+=p;lines.push([o.qty+"× "+c.n+" ("+s[0]+")",p]);txt.push(o.qty+" x "+c.n+" ("+s[0]+") "+money(p))}});
+  Object.keys(st.it).forEach(function(id){var q=st.it[id];if(q>0){var r=FK.itemById(id),p=r[3]*q;total+=p;lines.push([q+"× "+r[1],p]);txt.push(q+" x "+r[1]+" "+money(p))}});
+  $("lines").innerHTML=lines.length?lines.map(function(l){return '<div class="ln"><span>'+l[0]+'</span><span>'+money(l[1])+'</span></div>'}).join(""):'<div class="empty">Nothing selected yet.</div>';
+  $("total").textContent=money(total);$("barTotal").textContent=money(total);
+  txt.push("","Subtotal: "+money(total));lastText=txt.join("\n");
+  $("order").href="mailto:hello@example.com?subject="+encodeURIComponent("First Kitchen order request")+"&body="+encodeURIComponent(lastText);
+}
+document.addEventListener("click",function(e){
+  var t=e.target.closest("button");if(!t)return;
+  if(t.dataset.p){applyPreset(t.dataset.p);render();return}
+  if(t.dataset.c){st.color=t.dataset.c;render();return}
+  if(t.dataset.a){
+    var id=t.dataset.id,d=t.dataset.a==="+"?1:-1;setCustom();
+    if(id.indexOf("c:")===0){var k=id.slice(2),o=st.cook[k]||{size:0,qty:0};o.qty=Math.max(0,Math.min(6,o.qty+d));st.cook[k]=o}
+    else{st.it[id]=Math.max(0,Math.min(6,(st.it[id]||0)+d))}
+    render();
+  }
+});
+document.addEventListener("change",function(e){
+  var k=e.target.dataset&&e.target.dataset.k;if(!k)return;
+  setCustom();var o=st.cook[k]||{size:0,qty:0};o.size=+e.target.value;st.cook[k]=o;render();
+});
+$("copy").onclick=function(){
+  try{navigator.clipboard.writeText(lastText);$("copy").textContent="Copied!"}catch(e){$("copy").textContent="Copy failed"}
+  setTimeout(function(){$("copy").textContent="Copy order summary"},1500);
+};
+render();
+})();
+</script>
+</body>
+</html>
