@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pantry refills — First Kitchen</title>
+<meta name="description" content="Subscribe to cooking oils, salt and spices at any frequency, from every 2 weeks to every 6 months. Save 10% on subscribed items.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="subscribe">
+<main>
+<div class="wrap">
+  <div class="page-head">
+    <div>
+      <h1 class="display" style="font-size:clamp(2.2rem,4.6vw,3.6rem)">Pantry refills</h1>
+      <p class="lede">Choose any oil, salt or spice and how often it ships. Every item has its own schedule, and subscribed items are 10% off. Skip a shipment, change the schedule or cancel before it goes out.</p>
+    </div>
+    <div class="art"><img src="images/pantry.svg" alt="" width="900" height="700"></div>
+  </div>
+
+  <div class="sub-layout">
+    <div>
+      <div class="tabs" id="tabs" role="group" aria-label="Pantry category">
+        <button type="button" class="opt on" data-tab="oils">Oils</button>
+        <button type="button" class="opt" data-tab="seas">Seasonings</button>
+        <button type="button" class="opt" data-tab="xsp">Extra spices</button>
+      </div>
+      <div class="step" id="catalog"></div>
+
+      <h2 class="h2" style="margin:44px 0 16px;font-size:1.8rem">Questions about refills</h2>
+      <div class="faq">
+        <details><summary>Can I pick a different schedule for each item?</summary><p>Yes. Every oil, salt or spice has its own frequency, from every 2 weeks to every 6 months. Items on the same schedule ship together in one box.</p></details>
+        <details><summary>Can I skip or cancel?</summary><p>You can skip a shipment, change an item’s schedule or cancel it at any time before it ships.</p></details>
+        <details><summary>How much do I save?</summary><p>Subscribed items are 10% off the one-time price.</p></details>
+        <details><summary>Do I need to buy a kit first?</summary><p>No. Refills work on their own, or alongside a kit from the <a href="builder.html">kit builder</a>.</p></details>
+      </div>
+    </div>
+
+    <aside class="sum" id="summary" aria-label="Your refills">
+      <h2>Your refills</h2>
+      <div id="subs"></div>
+      <div class="tot"><span>Per shipment cycle</span><span id="total">$0.00</span></div>
+      <div class="note" id="saveNote"></div>
+      <a class="btn block" id="order" href="#" style="margin-top:14px">Request refills</a>
+      <div class="note">Shipping and tax are calculated at checkout. Prices shown are sample prices.</div>
+    </aside>
+  </div>
+  <div style="height:70px"></div>
+</div>
+</main>
+
+<script src="data.js"></script>
+<script src="site.js"></script>
+<script>
+(function(){
+var FK=window.FK,$=function(i){return document.getElementById(i)},money=FK.money;
+var subs=FK.getSubs();
+var tab="oils",draft={};
+var GROUPS={oils:["OILS","bottle"],seas:["SEAS","jar"],xsp:["XSP","jar"]};
+var COLS=["#D9C98E","#F9F5E9","#E9905F","#8FA88B","#293D55"];
+// ?item=ID opens the right tab and highlights the item
+var want=new URLSearchParams(location.search).get("item");
+if(want){var ch=want.charAt(0);tab=ch==="o"?"oils":ch==="x"?"xsp":"seas"}
+function dr(id){if(!draft[id])draft[id]={freq:"4w",qty:1};return draft[id]}
+function find(id){for(var i=0;i<subs.length;i++)if(subs[i].id===id)return subs[i];return null}
+function freqSelect(val,attr,label){return '<select '+attr+' aria-label="'+label+'">'+FK.FREQ.map(function(f){return '<option value="'+f.id+'"'+(f.id===val?' selected':'')+'>'+f.n+'</option>'}).join("")+'</select>'}
+function stepper(attr,q,name){return '<div class="st"><button type="button" '+attr+' data-d="-1" aria-label="Fewer '+name+'">−</button><span>'+q+'</span><button type="button" '+attr+' data-d="1" aria-label="More '+name+'">+</button></div>'}
+function addDays(n){var d=new Date();d.setDate(d.getDate()+n);return d.toLocaleDateString(undefined,{month:"short",day:"numeric"})}
+
+function renderCatalog(){
+  var g=GROUPS[tab],arr=FK[g[0]];
+  $("catalog").innerHTML=arr.map(function(r,i){
+    var d=dr(r[0]),already=find(r[0]);
+    return '<div class="sub-item" id="i-'+r[0]+'">'+FK.art(g[1],COLS[i%5])+
+      '<div><b>'+r[1]+'</b><div class="muted small">'+(r[2]?r[2]+', ':'')+money(r[3]*(1-FK.SUB_DISCOUNT))+' <s>'+money(r[3])+'</s></div></div>'+
+      '<span></span><div class="ctl">'+freqSelect(d.freq,'data-cf="'+r[0]+'"','Frequency for '+r[1])+stepper('data-cq="'+r[0]+'"',d.qty,r[1])+
+      '<button type="button" class="btn sm" data-add="'+r[0]+'">'+(already?'Update refill':'Subscribe')+'</button></div></div>';
+  }).join("");
+  [].forEach.call($("tabs").children,function(b){b.classList.toggle("on",b.dataset.tab===tab);b.setAttribute("aria-pressed",b.dataset.tab===tab)});
+}
+function renderSummary(){
+  var total=0,full=0;
+  if(!subs.length){$("subs").innerHTML='<p class="empty">No refills yet. Pick an oil, salt or spice and a schedule to start.</p>'}
+  else{
+    $("subs").innerHTML=subs.map(function(s){
+      var r=FK.itemById(s.id),f=FK.freqById(s.freq),p=r[3]*s.qty*(1-FK.SUB_DISCOUNT);total+=p;full+=r[3]*s.qty;
+      return '<div style="padding:10px 0;border-top:1px solid var(--line)"><div class="ln"><span style="color:var(--ink);font-weight:600">'+s.qty+' × '+r[1]+'</span><span>'+money(p)+'</span></div>'+
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+freqSelect(s.freq,'data-sf="'+s.id+'"','Frequency for '+r[1])+
+        '<button type="button" class="btn alt sm" data-rm="'+s.id+'">Remove</button></div>'+
+        '<div class="note" style="margin-top:6px">First shipment around '+addDays(7)+', then '+f.n.toLowerCase()+'.</div></div>';
+    }).join("");
+  }
+  $("total").textContent=money(total);
+  $("saveNote").textContent=subs.length?"You save "+money(full-total)+" compared with one-time prices.":"";
+  var txt=["FIRST KITCHEN REFILL REQUEST",""].concat(subs.map(function(s){var r=FK.itemById(s.id);return s.qty+" x "+r[1]+": "+FK.freqById(s.freq).n}),["","Total per cycle: "+money(total)]).join("\n");
+  $("order").href="mailto:hello@example.com?subject="+encodeURIComponent("First Kitchen refill request")+"&body="+encodeURIComponent(txt);
+  FK.setSubs(subs);
+}
+function renderAll(){renderCatalog();renderSummary()}
+
+document.addEventListener("click",function(e){
+  var b=e.target.closest("button");if(!b)return;
+  if(b.dataset.tab){tab=b.dataset.tab;renderCatalog();return}
+  if(b.dataset.cq){var d=dr(b.dataset.cq);d.qty=Math.max(1,Math.min(6,d.qty+(+b.dataset.d)));renderCatalog();return}
+  if(b.dataset.add){
+    var id=b.dataset.add,d2=dr(id),ex=find(id);
+    if(ex){ex.freq=d2.freq;ex.qty=d2.qty}else subs.push({id:id,freq:d2.freq,qty:d2.qty});
+    FK.toast((ex?"Updated refill: ":"Subscribed: ")+FK.itemById(id)[1]+", "+FK.freqById(d2.freq).n.toLowerCase());
+    renderAll();return;
+  }
+  if(b.dataset.rm){subs=subs.filter(function(s){return s.id!==b.dataset.rm});renderAll();FK.toast("Removed from your refills")}
+});
+document.addEventListener("change",function(e){
+  var t=e.target;
+  if(t.dataset.cf){dr(t.dataset.cf).freq=t.value}
+  else if(t.dataset.sf){var s=find(t.dataset.sf);if(s){s.freq=t.value;renderSummary()}}
+});
+renderAll();
+if(want){var el=$("i-"+want);if(el){el.scrollIntoView({block:"center"});el.style.background="var(--sage-t)";el.style.borderRadius="12px"}}
+})();
+</script>
+</body>
+</html>
